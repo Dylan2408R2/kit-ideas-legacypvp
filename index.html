@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Legacy PvP Kit Builder</title>
+    <style>
+        :root {
+            --wa-color: #25D366;
+            --mc-gui: #c6c6c6;
+            --mc-slot: #8b8b8b;
+        }
+
+        body {
+            background-color: #1a1a1a;
+            color: white;
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            margin: 0;
+        }
+
+        h1 { color: var(--wa-color); margin-bottom: 5px; font-size: 1.5rem; }
+        .subtitle { color: #aaa; margin-bottom: 20px; font-size: 0.9rem; text-align: center; }
+
+        /* Contenedor del Inventario */
+        .inventory-container {
+            background-color: var(--mc-gui);
+            padding: 12px;
+            border: 4px solid #555;
+            box-shadow: inset -4px -4px 0 #333, inset 4px 4px 0 #fff;
+            margin-bottom: 20px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(9, 40px);
+            gap: 2px;
+        }
+
+        .hotbar-gap { height: 10px; grid-column: span 9; }
+
+        .slot {
+            width: 36px;
+            height: 36px;
+            background-color: var(--mc-slot);
+            border: 2px solid;
+            border-color: #373737 #ffffff #ffffff #373737;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        /* Efecto de Encantamiento */
+        .enchanted {
+            background: #9b8bba;
+            box-shadow: inset 0 0 10px #aa00ff;
+            animation: glow 2s infinite alternate;
+        }
+
+        @keyframes glow {
+            from { filter: brightness(1); }
+            to { filter: brightness(1.3); }
+        }
+
+        /* Menú de selección de items */
+        .picker {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            max-width: 400px;
+            justify-content: center;
+            background: #2a2a2a;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .item-choice {
+            background: #444;
+            border: 1px solid #666;
+            color: white;
+            padding: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 65px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 0.7rem;
+        }
+
+        .item-choice:active { transform: scale(0.9); }
+        .item-choice span { margin-top: 4px; }
+
+        /* Botón Enviar estilo WhatsApp */
+        .btn-send {
+            background-color: var(--wa-color);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            width: 100%;
+            max-width: 320px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        /* Modales */
+        #modal {
+            display: none;
+            position: fixed;
+            top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: #2a2a2a; padding: 20px; z-index: 100;
+            border: 2px solid var(--wa-color); border-radius: 10px; width: 260px;
+        }
+        .overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index: 50; }
+        .enc-option { margin: 15px 0; display: flex; align-items: center; gap: 10px; font-size: 1.1rem; }
+    </style>
+</head>
+<body>
+
+    <h1>Legacy PvP Kit Maker</h1>
+    <p class="subtitle">Arma tu idea de kit para el grupo de WhatsApp</p>
+
+    <!-- Selector de Items -->
+    <div class="picker">
+        <div class="item-choice" onclick="addItem('Espada', '⚔️', true)"><span>⚔️</span>Espada</div>
+        <div class="item-choice" onclick="addItem('Pala', '🥄', true)"><span>🥄</span>Pala</div>
+        <div class="item-choice" onclick="addItem('Hacha', '🪓', true)"><span>🪓</span>Hacha</div>
+        <div class="item-choice" onclick="addItem('Arco', '🏹', true)"><span>🏹</span>Arco</div>
+        <div class="item-choice" onclick="addItem('Armor', '👕', true)"><span>👕</span>Armor</div>
+        <div class="item-choice" onclick="addItem('Caña', '🎣', false)"><span>🎣</span>Caña</div>
+        <div class="item-choice" onclick="addItem('Gapple', '🍎', false)"><span>🍎</span>Gapple</div>
+        <div class="item-choice" onclick="addItem('Web', '🕸️', false)"><span>🕸️</span>Web</div>
+        <div class="item-choice" onclick="addItem('Lava', '🔥', false)"><span>🔥</span>Lava</div>
+        <div class="item-choice" onclick="addItem('Perla', '🔮', false)"><span>🔮</span>Perla</div>
+    </div>
+
+    <!-- Inventario -->
+    <div class="inventory-container">
+        <div class="grid" id="inv-main"></div>
+        <div class="hotbar-gap"></div>
+        <div class="grid" id="inv-hotbar"></div>
+    </div>
+
+    <button class="btn-send" onclick="shareToWA()">ENVIAR IDEA AL GRUPO</button>
+
+    <!-- Modal de Encantamientos -->
+    <div class="overlay" id="overlay" onclick="closeModal()"></div>
+    <div id="modal">
+        <h3 id="mod-name" style="margin: 0 0 15px 0;">Item</h3>
+        <div id="mod-enchants"></div>
+        <button class="btn-send" style="padding:10px; font-size:14px; margin-top:10px" onclick="closeModal()">Listo</button>
+        <button class="btn-send" style="padding:10px; font-size:14px; background:#a33; margin-top:8px" onclick="deleteItem()">Eliminar Item</button>
+    </div>
+
+    <script>
+        let inventory = Array(36).fill(null);
+        let activeIdx = null;
+
+        // Crear Slots
+        const mainGrid = document.getElementById('inv-main');
+        const hotGrid = document.getElementById('inv-hotbar');
+        
+        for(let i=0; i<36; i++) {
+            const s = document.createElement('div');
+            s.className = 'slot';
+            s.id = `slot-${i}`;
+            s.onclick = () => openSlot(i);
+            if(i < 27) mainGrid.appendChild(s);
+            else hotGrid.appendChild(s);
+        }
+
+        function addItem(name, icon, canEnc) {
+            let empty = inventory.findIndex(x => x === null);
+            if(empty !== -1) {
+                inventory[empty] = { name, icon, canEnc, enchants: [] };
+                render();
+            }
+        }
+
+        function render() {
+            inventory.forEach((item, i) => {
+                const s = document.getElementById(`slot-${i}`);
+                if(item) {
+                    s.innerHTML = item.icon;
+                    s.className = 'slot' + (item.enchants.length > 0 ? ' enchanted' : '');
+                } else {
+                    s.innerHTML = ''; s.className = 'slot';
+                }
+            });
+        }
+
+        function openSlot(i) {
+            if(!inventory[i]) return;
+            activeIdx = i;
+            if(!inventory[i].canEnc) { if(confirm("¿Quitar?")) deleteItem(); return; }
+
+            document.getElementById('mod-name').innerText = inventory[i].name;
+            const list = document.getElementById('mod-enchants');
+            list.innerHTML = '';
+            
+            ["Filo V", "Empuje II", "Protección IV", "Eficiencia V", "Poder V"].forEach(e => {
+                let has = inventory[i].enchants.includes(e);
+                list.innerHTML += `<div class="enc-option"><label><input type="checkbox" ${has?'checked':''} onchange="toggleEnc('${e}')"> ${e}</label></div>`;
+            });
+
+            document.getElementById('modal').style.display = 'block';
+            document.getElementById('overlay').style.display = 'block';
+        }
+
+        function toggleEnc(e) {
+            let item = inventory[activeIdx];
+            let idx = item.enchants.indexOf(e);
+            if(idx > -1) item.enchants.splice(idx, 1);
+            else item.enchants.push(e);
+            render();
+        }
+
+        function deleteItem() { inventory[activeIdx] = null; closeModal(); render(); }
+        function closeModal() { document.getElementById('modal').style.display = 'none'; document.getElementById('overlay').style.display = 'none'; }
+
+        function shareToWA() {
+            if(!inventory.some(x => x !== null)) return alert("El inventario está vacío.");
+
+            // El mensaje que pediste
+            alert("Envialo a Whatsapp para que pueda ver tu idea");
+
+            // Texto para el mensaje
+            let txt = "*NUEVA IDEA DE KIT PARA EL GRUPO* ⚔️\n\n";
+            inventory.forEach(it => {
+                if(it) {
+                    txt += `${it.icon} *${it.name}*`;
+                    if(it.enchants.length > 0) txt += ` _(${it.enchants.join(", ")})_`;
+                    txt += "\n";
+                }
+            });
+
+            // Generar Link dinámico (Base64)
+            const data = btoa(JSON.stringify(inventory));
+            const shareUrl = window.location.origin + window.location.pathname + "#kit=" + data;
+            
+            txt += "\n🔗 *Mira el kit aquí:* " + shareUrl;
+
+            window.open(`https://wa.me/?text=${encodeURIComponent(txt)}`, '_blank');
+        }
+
+        // Al cargar, verificar si hay un kit en la URL
+        window.onload = () => {
+            const hash = window.location.hash;
+            if(hash.startsWith("#kit=")) {
+                try {
+                    inventory = JSON.parse(atob(hash.split('=')[1]));
+                    render();
+                } catch(e) { console.log("Error cargando kit"); }
+            }
+        }
+    </script>
+</body>
+</html>
