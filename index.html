@@ -3,292 +3,191 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Legacy PvP Kit Maker</title>
+    <title>Legacy PvP Kit Builder</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
         :root {
             --wa-green: #25D366;
             --mc-gui: #c6c6c6;
-            --mc-border: #555;
-            /* Tamaño de un solo sprite en la imagen */
-            --s: 33.33px; 
+            --mc-slot: #8b8b8b;
         }
 
         body {
-            background-color: #121212;
-            color: white;
-            font-family: sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
-            margin: 0;
+            background-color: #1a1a1a; color: white; font-family: sans-serif;
+            display: flex; flex-direction: column; align-items: center; padding: 15px; margin: 0;
         }
 
-        h1 { color: var(--wa-green); text-shadow: 2px 2px #000; margin-bottom: 5px; }
-
-        /* Estilo del Sprite */
-        .sprite {
-            width: 32px;
-            height: 32px;
-            background-image: url('items.jpg');
-            background-repeat: no-repeat;
-            background-size: 800px auto; /* Basado en el ancho de la imagen */
-            image-rendering: pixelated;
-            transform: scale(1.1);
+        /* Estilo Inventario */
+        .inventory-wrapper {
+            background-color: var(--mc-gui); padding: 10px; border: 4px solid #555;
+            box-shadow: inset -4px -4px 0 #333, inset 4px 4px 0 #fff; margin-bottom: 20px;
         }
 
-        /* --- COORDENADAS EXACTAS FAITHLESS --- */
-        .item-sword  { background-position: calc(-7 * var(--s)) calc(-5 * var(--s)); }
-        .item-shovel { background-position: calc(-5 * var(--s)) calc(-4 * var(--s)); }
-        .item-axe    { background-position: calc(-4 * var(--s)) calc(-4 * var(--s)); }
-        .item-rod    { background-position: calc(-4 * var(--s)) calc(-1 * var(--s)); }
-        .item-bow    { background-position: calc(-14 * var(--s)) calc(-3 * var(--s)); }
-        .item-pearl  { background-position: calc(-11 * var(--s)) calc(-10 * var(--s)); }
-        .item-gapple { background-position: calc(-6 * var(--s)) calc(-12 * var(--s)); }
-        .item-pot    { background-position: calc(-10 * var(--s)) calc(-9 * var(--s)); }
-        .item-lava   { background-position: calc(0 * var(--s)) calc(-11 * var(--s)); }
-        .item-web    { background-position: calc(-20 * var(--s)) calc(-9 * var(--s)); }
-        .item-helmet { background-position: calc(-8 * var(--s)) calc(-4 * var(--s)); }
-        .item-chest  { background-position: calc(-9 * var(--s)) calc(-4 * var(--s)); }
+        .grid { display: grid; grid-template-columns: repeat(9, 42px); gap: 2px; }
 
-        /* Contenedor del Picker */
+        .slot {
+            width: 38px; height: 38px; background-color: var(--mc-slot);
+            border: 2px solid; border-color: #373737 #ffffff #ffffff #373737;
+            display: flex; justify-content: center; align-items: center; position: relative;
+        }
+
+        .item-img { width: 32px; height: 32px; image-rendering: pixelated; cursor: pointer; }
+
+        .enchanted::after {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(176, 0, 255, 0.3); box-shadow: inset 0 0 10px #aa00ff; pointer-events: none;
+        }
+
+        /* Picker */
         .picker {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            justify-content: center;
-            background: #252525;
-            padding: 12px;
-            border-radius: 8px;
-            border: 2px solid #444;
-            max-width: 420px;
-            margin-bottom: 20px;
+            display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
+            background: #252525; padding: 12px; border-radius: 10px; margin-bottom: 20px; max-width: 450px;
         }
 
         .drag-source {
-            width: 40px;
-            height: 40px;
-            background: #333;
-            border: 1px solid #555;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: grab;
-        }
-
-        /* Inventario */
-        .inventory-wrapper {
-            background-color: var(--mc-gui);
-            padding: 10px;
-            border: 4px solid var(--mc-border);
-            box-shadow: inset -4px -4px 0 #333, inset 4px 4px 0 #fff;
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(9, 40px);
-            gap: 2px;
-        }
-
-        .slot {
-            width: 36px;
-            height: 36px;
-            background-color: #8b8b8b;
-            border: 2px solid;
-            border-color: #373737 #ffffff #ffffff #373737;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-        }
-
-        /* Efecto encantado */
-        .enchanted::after {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(176, 0, 255, 0.25);
-            box-shadow: inset 0 0 8px #aa00ff;
-            pointer-events: none;
+            width: 44px; height: 44px; background: #333; border: 1px solid #555;
+            display: flex; justify-content: center; align-items: center; cursor: grab;
         }
 
         .btn-send {
-            margin-top: 20px;
-            background-color: var(--wa-green);
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            font-size: 1rem;
-            font-weight: bold;
-            border-radius: 8px;
-            cursor: pointer;
-            box-shadow: 0 4px #15853c;
+            background-color: var(--wa-green); color: white; border: none;
+            padding: 15px 40px; font-size: 1.1rem; font-weight: bold; border-radius: 50px; cursor: pointer;
         }
 
-        .btn-send:active { transform: translateY(2px); box-shadow: 0 2px #15853c; }
-
-        /* Modal */
         #modal {
-            display: none;
-            position: fixed;
-            top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: #222; border: 2px solid var(--wa-green);
-            padding: 20px; border-radius: 12px; z-index: 2000;
+            display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: #222; border: 2px solid var(--wa-green); padding: 20px; z-index: 2000; width: 260px;
         }
-        .overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8); z-index: 1500; }
+        .overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.85); z-index: 1500; }
     </style>
 </head>
 <body>
 
-    <h1>Legacy PvP Kit Maker</h1>
+    <h1 style="color:var(--wa-green)">Legacy Kit Builder</h1>
     
     <div class="picker" id="item-source">
-        <div class="drag-source" data-id="Espada" data-class="item-sword" data-enc="true"><div class="sprite item-sword"></div></div>
-        <div class="drag-source" data-id="Pala" data-class="item-shovel" data-enc="true"><div class="sprite item-shovel"></div></div>
-        <div class="drag-source" data-id="Hacha" data-class="item-axe" data-enc="true"><div class="sprite item-axe"></div></div>
-        <div class="drag-source" data-id="Arco" data-class="item-bow" data-enc="true"><div class="sprite item-bow"></div></div>
-        <div class="drag-source" data-id="Caña" data-class="item-rod" data-enc="false"><div class="sprite item-rod"></div></div>
-        <div class="drag-source" data-id="Perla" data-class="item-pearl" data-enc="false"><div class="sprite item-pearl"></div></div>
-        <div class="drag-source" data-id="Manzana" data-class="item-gapple" data-enc="false"><div class="sprite item-gapple"></div></div>
-        <div class="drag-source" data-id="Pocion" data-class="item-pot" data-enc="false"><div class="sprite item-pot"></div></div>
-        <div class="drag-source" data-id="Lava" data-class="item-lava" data-enc="false"><div class="sprite item-lava"></div></div>
-        <div class="drag-source" data-id="Cobweb" data-class="item-web" data-enc="false"><div class="sprite item-web"></div></div>
-        <div class="drag-source" data-id="Casco" data-class="item-helmet" data-enc="true"><div class="sprite item-helmet"></div></div>
-        <div class="drag-source" data-id="Pechera" data-class="item-chest" data-enc="true"><div class="sprite item-chest"></div></div>
+        <!-- URLs confirmadas de PrismarineJS -->
+        <div class="drag-source" data-id="Espada" data-enc="true" data-url="https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.8.8/items/diamond_sword.png"><img src="https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.8.8/items/diamond_sword.png" class="item-img"></div>
+        
+        <div class="drag-source" data-id="Pala" data-enc="true" data-url="https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.8.8/items/diamond_shovel.png"><img src="https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.8.8/items/diamond_shovel.png" class="item-img"></div>
+        
+        <div class="drag-source" data-id="Hacha" data-enc="true" data-url="https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.8.8/items/diamond_axe.png"><img src="https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.8.8/items/diamond_axe.png" class="item-img"></div>
+        
+        <div class="drag-source" data-id="Perla" data-enc="false" data-url="https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.8.8/items/ender_pearl.png"><img src="https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.8.8/items/ender_pearl.png" class="item-img"></div>
+        
+        <div class="drag-source" data-id="Gapple" data-enc="false" data-url="https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.8.8/items/apple_golden.png"><img src="https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.8.8/items/apple_golden.png" class="item-img"></div>
+        
+        <div class="drag-source" data-id="Caña" data-enc="false" data-url="https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.8.8/items/fishing_rod_uncast.png"><img src="https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.8.8/items/fishing_rod_uncast.png" class="item-img"></div>
+        
+        <div class="drag-source" data-id="Pocion" data-enc="false" data-url="https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.8.8/items/potion_bottle_splash.png"><img src="https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.8.8/items/potion_bottle_splash.png" class="item-img"></div>
+
+        <div class="drag-source" data-id="Telaraña" data-enc="false" data-url="https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.8.8/items/web.png"><img src="https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/1.8.8/items/web.png" class="item-img"></div>
     </div>
 
     <div class="inventory-wrapper">
         <div class="grid" id="main-inv"></div>
-        <div style="height: 10px;"></div>
+        <div style="height:12px"></div>
         <div class="grid" id="hotbar"></div>
     </div>
 
-    <button class="btn-send" onclick="sendWhatsApp()">ENVIAR IDEA AL GRUPO</button>
+    <button class="btn-send" onclick="sendWhatsApp()">ENVIAR AL GRUPO</button>
 
     <div class="overlay" id="overlay" onclick="closeModal()"></div>
     <div id="modal">
-        <h3 id="mod-title" style="margin-top:0">Encantar</h3>
+        <h3 id="mod-title">Encantar</h3>
         <div id="mod-list"></div>
-        <button class="btn-send" style="padding:10px; margin-top:10px" onclick="closeModal()">Listo</button>
-        <button class="btn-send" style="padding:10px; background:#a33; margin-top:8px; box-shadow: 0 4px #611;" onclick="deleteItem()">Eliminar</button>
+        <button class="btn-send" style="padding:10px; width:100%" onclick="closeModal()">Listo</button>
+        <button class="btn-send" style="padding:10px; background:#a33; margin-top:8px; width:100%" onclick="deleteItem()">Eliminar</button>
     </div>
 
     <script>
-        let inventoryData = Array(36).fill(null);
-        let editingIdx = null;
+        let inventory = Array(36).fill(null);
+        let currentIdx = null;
 
-        // Crear Slots
-        const mainInv = document.getElementById('main-inv');
-        const hotbar = document.getElementById('hotbar');
+        const main = document.getElementById('main-inv');
+        const hot = document.getElementById('hotbar');
 
         for (let i = 0; i < 36; i++) {
             const slot = document.createElement('div');
             slot.className = 'slot';
             slot.dataset.index = i;
-            if (i < 27) mainInv.appendChild(slot);
-            else hotbar.appendChild(slot);
+            if (i < 27) main.appendChild(slot); else hot.appendChild(slot);
 
             new Sortable(slot, {
-                group: { name: 'shared', pull: true, put: true },
+                group: 'shared',
                 animation: 150,
                 onAdd: (evt) => {
-                    const fromPicker = evt.from.id === 'item-source';
-                    const itemEl = evt.item;
-                    
-                    if (fromPicker) {
-                        inventoryData[i] = {
-                            name: itemEl.dataset.id,
-                            class: itemEl.dataset.class,
-                            canEnc: itemEl.dataset.enc === "true",
-                            enchants: []
-                        };
-                    } else {
-                        const fromIdx = evt.from.dataset.index;
-                        inventoryData[i] = inventoryData[fromIdx];
-                        inventoryData[fromIdx] = null;
-                    }
-                    itemEl.remove();
-                    renderAll();
+                    const item = evt.item;
+                    inventory[i] = {
+                        name: item.dataset.id,
+                        url: item.dataset.url,
+                        canEnc: item.dataset.enc === "true",
+                        enchants: []
+                    };
+                    if (evt.from.dataset.index) inventory[evt.from.dataset.index] = null;
+                    item.remove();
+                    render();
                 }
             });
         }
 
         new Sortable(document.getElementById('item-source'), {
             group: { name: 'shared', pull: 'clone', put: false },
-            sort: false, animation: 150
+            sort: false
         });
 
-        function renderAll() {
+        function render() {
             for (let i = 0; i < 36; i++) {
                 const slot = document.querySelector(`.slot[data-index="${i}"]`);
                 slot.innerHTML = '';
-                const d = inventoryData[i];
+                const d = inventory[i];
                 if (d) {
-                    const el = document.createElement('div');
-                    el.className = 'slot-item' + (d.enchants.length > 0 ? ' enchanted' : '');
-                    el.innerHTML = `<div class="sprite ${d.class}"></div>`;
-                    el.onclick = () => openEnchant(i);
-                    slot.appendChild(el);
+                    const img = document.createElement('img');
+                    img.src = d.url;
+                    img.className = 'item-img' + (d.enchants.length > 0 ? ' enchanted' : '');
+                    img.onclick = () => openModal(i);
+                    slot.appendChild(img);
                 }
             }
         }
 
-        function openEnchant(i) {
-            editingIdx = i;
-            const item = inventoryData[i];
-            if (!item.canEnc) { if(confirm("¿Quitar item?")) deleteItem(); return; }
-
+        function openModal(i) {
+            currentIdx = i;
+            const item = inventory[i];
+            if (!item.canEnc) { if(confirm("¿Eliminar?")) deleteItem(); return; }
             document.getElementById('mod-title').innerText = item.name;
             const list = document.getElementById('mod-list');
             list.innerHTML = '';
             ["Filo V", "Empuje II", "Protección IV", "Eficiencia V"].forEach(en => {
-                const checked = item.enchants.includes(en) ? 'checked' : '';
-                list.innerHTML += `<div style="margin:10px 0"><label><input type="checkbox" ${checked} onchange="toggleEnchant('${en}')"> ${en}</label></div>`;
+                const has = item.enchants.includes(en);
+                list.innerHTML += `<div><label><input type="checkbox" ${has?'checked':''} onchange="toggleEnc('${en}')"> ${en}</label></div><br>`;
             });
-
             document.getElementById('modal').style.display = 'block';
             document.getElementById('overlay').style.display = 'block';
         }
 
-        function toggleEnchant(en) {
-            const item = inventoryData[editingIdx];
+        function toggleEnc(en) {
+            const item = inventory[currentIdx];
             const idx = item.enchants.indexOf(en);
-            if (idx > -1) item.enchants.splice(idx, 1);
-            else item.enchants.push(en);
-            renderAll();
+            if (idx > -1) item.enchants.splice(idx, 1); else item.enchants.push(en);
+            render();
         }
 
-        function deleteItem() { inventoryData[editingIdx] = null; closeModal(); renderAll(); }
+        function deleteItem() { inventory[currentIdx] = null; closeModal(); render(); }
         function closeModal() { document.getElementById('modal').style.display = 'none'; document.getElementById('overlay').style.display = 'none'; }
 
         function sendWhatsApp() {
-            if (!inventoryData.some(x => x !== null)) return alert("¡Pon algo en el inventario!");
+            if (!inventory.some(x => x !== null)) return alert("Inventario vacío");
             alert("Envialo a WhatsApp para que pueda ver tu idea");
-
-            let text = "*NUEVO KIT LEGACY* ⚔️\n\n";
-            inventoryData.forEach((it) => {
-                if (it) {
-                    text += `- *${it.name}*`;
-                    if (it.enchants.length > 0) text += ` _(${it.enchants.join(", ")})_`;
-                    text += "\n";
-                }
-            });
-
-            const dataEncoded = btoa(JSON.stringify(inventoryData));
-            const shareUrl = window.location.origin + window.location.pathname + "#kit=" + dataEncoded;
-            text += "\n🔗 *Mira el diseño aquí:* " + shareUrl;
-
-            window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+            let text = "*KIT LEGACY PVP* ⚔️\n\n";
+            inventory.forEach(it => { if(it) text += `- *${it.name}* ${it.enchants.length?`_(${it.enchants.join(",")})_`:''}\n`});
+            const url = window.location.origin + window.location.pathname + "#kit=" + btoa(JSON.stringify(inventory));
+            window.open(`https://wa.me/?text=${encodeURIComponent(text + "\n🔗 Kit: " + url)}`, '_blank');
         }
 
         window.onload = () => {
-            const hash = window.location.hash;
-            if (hash.startsWith("#kit=")) {
-                try {
-                    inventoryData = JSON.parse(atob(hash.split('=')[1]));
-                    renderAll();
-                } catch(e) {}
+            if (window.location.hash.includes("#kit=")) {
+                inventory = JSON.parse(atob(window.location.hash.split('=')[1])); render();
             }
         }
     </script>
