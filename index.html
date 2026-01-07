@@ -13,7 +13,6 @@
         .grid { display: grid; grid-template-columns: repeat(9, 40px); gap: 2px; }
         .slot { width: 36px; height: 36px; background: #8b8b8b; border: 2px solid; border-color: #373737 #fff #fff #373737; display: flex; justify-content: center; align-items: center; position: relative; }
         .item-img { width: 32px; height: 32px; image-rendering: pixelated; cursor: pointer; z-index: 2; }
-        .emoji-fallback { font-size: 20px; position: absolute; z-index: 1; }
         .enchanted::after { content: ''; position: absolute; inset: 0; background: rgba(176, 0, 255, 0.3); box-shadow: inset 0 0 8px #aa00ff; z-index: 3; pointer-events: none; }
         .picker { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; background: #252525; padding: 12px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #444; max-width: 480px; }
         .drag-source { width: 44px; height: 44px; background: #333; border: 1px solid #555; display: flex; justify-content: center; align-items: center; cursor: grab; position: relative; }
@@ -46,17 +45,15 @@
     <script>
         const BASE = "https://raw.githubusercontent.com/nebulimity/MoreLikeMinecraft/main/";
         
-        // MANTENEMOS LOS IDs ORIGINALES PARA NO ROMPER LOS LINKS DEL GRUPO
         const ITEM_MAP = {
-            1: { n: "Espada", u: "default/default_tool_diamondsword.png", e: true, f: "⚔️" },
-            2: { n: "Pala", u: "default/default_tool_diamondshovel.png", e: true, f: "🥄" },
-            3: { n: "Hacha", u: "default/default_tool_diamondaxe.png", e: true, f: "🪓" },
-            4: { n: "Manzana", u: "default/default_apple.png", e: false, f: "🍎" },
-            5: { n: "Lava", u: "bucket/bucket_lava.png", e: false, f: "🔥" },
-            6: { n: "Pan", u: "farming/farming_bread.png", e: false, f: "🍞" },
-            7: { n: "TNT", u: "tnt/tnt_side.png", e: false, f: "🧨" },
-            8: { n: "Perla", u: "default/default_emerald.png", e: false, f: "🔮" }, // Nuevo ID para Perla
-            9: { n: "Agua", u: "bucket/bucket_water.png", e: false, f: "💧" }
+            1: { n: "Espada", u: "default/default_tool_diamondsword.png", e: true },
+            2: { n: "Pala", u: "default/default_tool_diamondshovel.png", e: true },
+            3: { n: "Hacha", u: "default/default_tool_diamondaxe.png", e: true },
+            4: { n: "Manzana", u: "default/default_apple.png", e: false },
+            5: { n: "Lava", u: "bucket/bucket_lava.png", e: false },
+            6: { n: "Pan", u: "farming/farming_bread.png", e: false },
+            7: { n: "TNT", u: "tnt/tnt_side.png", e: false },
+            9: { n: "Agua", u: "bucket/bucket_water.png", e: false }
         };
 
         const ENCHANTS = { a: "Filo V", b: "Retroceso II", c: "Protección IV", d: "Eficiencia V" };
@@ -66,7 +63,7 @@
         const picker = document.getElementById('item-source');
         Object.keys(ITEM_MAP).forEach(id => {
             const it = ITEM_MAP[id];
-            picker.innerHTML += `<div class="drag-source" data-id="${id}"><span class="emoji-fallback">${it.f}</span><img src="${BASE+it.u}" class="item-img" onerror="this.style.display='none'"></div>`;
+            picker.innerHTML += `<div class="drag-source" data-id="${id}"><img src="${BASE+it.u}" class="item-img"></div>`;
         });
 
         const main = document.getElementById('main-inv');
@@ -100,11 +97,9 @@
                 if (data) {
                     const it = ITEM_MAP[data.id];
                     if(!it) return;
-                    slot.innerHTML = `<span class="emoji-fallback">${it.f}</span>`;
                     const img = document.createElement('img');
                     img.src = BASE + it.u;
                     img.className = 'item-img' + (data.enchants.length > 0 ? ' enchanted' : '');
-                    img.onerror = () => img.style.display = 'none';
                     img.onclick = () => openModal(i);
                     slot.appendChild(img);
                 }
