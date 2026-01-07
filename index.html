@@ -3,69 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PvP Kit Builder</title>
+    <title>PvP Short-Link Builder</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
-        :root {
-            --wa-green: #25D366;
-            --mc-gui: #c6c6c6;
-            --mc-slot: #8b8b8b;
-        }
+        :root { --wa: #25D366; --bg: #121212; --gui: #c6c6c6; }
+        body { background: var(--bg); color: white; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 15px; margin: 0; }
+        h1 { color: var(--wa); font-size: 1.4rem; text-shadow: 2px 2px #000; }
+        
+        .picker { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; background: #252525; padding: 12px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #444; }
+        .drag-source { width: 44px; height: 44px; background: #333; border: 1px solid #555; display: flex; justify-content: center; align-items: center; cursor: grab; }
+        .item-img { width: 32px; height: 32px; image-rendering: pixelated; }
 
-        body {
-            background-color: #121212; color: white; font-family: sans-serif;
-            display: flex; flex-direction: column; align-items: center; padding: 15px; margin: 0;
-            user-select: none; touch-action: manipulation;
-        }
+        .inventory-card { background: var(--gui); padding: 10px; border: 4px solid #555; box-shadow: inset -4px -4px 0 #333, inset 4px 4px 0 #fff; }
+        .grid { display: grid; grid-template-columns: repeat(9, 40px); gap: 2px; }
+        .slot { width: 36px; height: 36px; background: #8b8b8b; border: 2px solid; border-color: #373737 #fff #fff #373737; display: flex; justify-content: center; align-items: center; position: relative; }
+        .enchanted::after { content: ''; position: absolute; inset: 0; background: rgba(176, 0, 255, 0.3); box-shadow: inset 0 0 8px #aa00ff; }
 
-        h1 { color: var(--wa-green); text-shadow: 2px 2px #000; margin: 10px 0; font-size: 1.5rem; }
-
-        /* Contenedor Inventario */
-        .inventory-card {
-            background-color: var(--mc-gui); padding: 10px; border: 4px solid #555;
-            box-shadow: inset -4px -4px 0 #333, inset 4px 4px 0 #fff;
-        }
-
-        .grid { display: grid; grid-template-columns: repeat(9, 42px); gap: 2px; }
-
-        .slot {
-            width: 38px; height: 38px; background-color: var(--mc-slot);
-            border: 2px solid; border-color: #373737 #ffffff #ffffff #373737;
-            display: flex; justify-content: center; align-items: center; position: relative;
-        }
-
-        .item-img { width: 32px; height: 32px; image-rendering: pixelated; cursor: pointer; }
-
-        /* Brillo encantamiento */
-        .enchanted::after {
-            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(176, 0, 255, 0.3); box-shadow: inset 0 0 10px #aa00ff; pointer-events: none;
-        }
-
-        /* Selector de items */
-        .picker {
-            display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
-            background: #252525; padding: 12px; border-radius: 10px; margin-bottom: 20px;
-            max-width: 500px; border: 1px solid #444;
-        }
-
-        .drag-source {
-            width: 44px; height: 44px; background: #333; border: 1px solid #555;
-            display: flex; justify-content: center; align-items: center; cursor: grab;
-        }
-
-        .btn-send {
-            margin-top: 25px; background-color: var(--wa-green); color: white; border: none;
-            padding: 15px 40px; font-size: 1.1rem; font-weight: bold; border-radius: 50px; cursor: pointer;
-            box-shadow: 0 4px #128c3e;
-        }
-
-        #modal {
-            display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: #222; border: 2px solid var(--wa-green); padding: 20px; z-index: 2000; width: 260px;
-            border-radius: 12px;
-        }
-        .overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.85); z-index: 1500; }
+        .btn { margin-top: 20px; background: var(--wa); color: white; border: none; padding: 15px 30px; font-weight: bold; border-radius: 50px; cursor: pointer; }
+        #modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #222; border: 2px solid var(--wa); padding: 20px; z-index: 2000; border-radius: 12px; }
+        .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1500; }
     </style>
 </head>
 <body>
@@ -73,67 +29,52 @@
     <h1>PvP Loadout Builder</h1>
     
     <div class="picker" id="item-source">
-        <!-- ÍTEMS CON RUTAS "RAW" DE MORELIKEMINECRAFT -->
-        
-        <!-- Espada -->
-        <div class="drag-source" data-id="Espada" data-enc="true" data-url="https://raw.githubusercontent.com/nebulimity/MoreLikeMinecraft/main/default/default_tool_diamondsword.png">
-            <img src="https://raw.githubusercontent.com/nebulimity/MoreLikeMinecraft/main/default/default_tool_diamondsword.png" class="item-img" onerror="this.src='https://raw.githubusercontent.com/nebulimity/MoreLikeMinecraft/main/default/default_tool_steelsword.png'">
-        </div>
-        
-        <!-- Pala (La que pediste) -->
-        <div class="drag-source" data-id="Pala" data-enc="true" data-url="https://raw.githubusercontent.com/nebulimity/MoreLikeMinecraft/main/default/default_tool_diamondshovel.png">
-            <img src="https://raw.githubusercontent.com/nebulimity/MoreLikeMinecraft/main/default/default_tool_diamondshovel.png" class="item-img">
-        </div>
-
-        <!-- Hacha -->
-        <div class="drag-source" data-id="Hacha" data-enc="true" data-url="https://raw.githubusercontent.com/nebulimity/MoreLikeMinecraft/main/default/default_tool_diamondaxe.png">
-            <img src="https://raw.githubusercontent.com/nebulimity/MoreLikeMinecraft/main/default/default_tool_diamondaxe.png" class="item-img">
-        </div>
-
-        <!-- Manzana (La ruta que pasaste corregida a RAW) -->
-        <div class="drag-source" data-id="Manzana" data-enc="false" data-url="https://raw.githubusercontent.com/nebulimity/MoreLikeMinecraft/main/default/default_apple.png">
-            <img src="https://raw.githubusercontent.com/nebulimity/MoreLikeMinecraft/main/default/default_apple.png" class="item-img">
-        </div>
-
-        <!-- Cubo Lava -->
-        <div class="drag-source" data-id="Lava" data-enc="false" data-url="https://raw.githubusercontent.com/nebulimity/MoreLikeMinecraft/main/bucket/bucket_lava.png">
-            <img src="https://raw.githubusercontent.com/nebulimity/MoreLikeMinecraft/main/bucket/bucket_lava.png" class="item-img">
-        </div>
-
-        <!-- Pan -->
-        <div class="drag-source" data-id="Pan" data-enc="false" data-url="https://raw.githubusercontent.com/nebulimity/MoreLikeMinecraft/main/farming/farming_bread.png">
-            <img src="https://raw.githubusercontent.com/nebulimity/MoreLikeMinecraft/main/farming/farming_bread.png" class="item-img">
-        </div>
-
-        <!-- TNT -->
-        <div class="drag-source" data-id="TNT" data-enc="false" data-url="https://raw.githubusercontent.com/nebulimity/MoreLikeMinecraft/main/tnt/tnt_side.png">
-            <img src="https://raw.githubusercontent.com/nebulimity/MoreLikeMinecraft/main/tnt/tnt_side.png" class="item-img">
-        </div>
+        <!-- Definimos los items con un ID simple para que el link sea corto -->
     </div>
 
     <div class="inventory-card">
         <div class="grid" id="main-inv"></div>
-        <div style="height:12px"></div>
+        <div style="height:10px"></div>
         <div class="grid" id="hotbar"></div>
     </div>
 
-    <button class="btn-send" onclick="sendWhatsApp()">ENVIAR AL GRUPO</button>
+    <button class="btn" onclick="sendWhatsApp()">ENVIAR LINK CORTO</button>
 
     <div class="overlay" id="overlay" onclick="closeModal()"></div>
     <div id="modal">
-        <h3 id="mod-title">Encantar</h3>
-        <div id="mod-list"></div>
-        <button class="btn-send" style="padding:10px; width:100%" onclick="closeModal()">Listo</button>
-        <button class="btn-send" style="padding:10px; background:#a33; margin-top:8px; width:100%; box-shadow:none" onclick="deleteItem()">Eliminar</button>
+        <h3 id="mod-title" style="margin:0"></h3>
+        <div id="mod-list" style="margin:15px 0"></div>
+        <button class="btn" style="padding:10px; width:100%" onclick="closeModal()">Listo</button>
+        <button class="btn" style="padding:10px; background:#a33; margin-top:8px; width:100%" onclick="deleteItem()">Eliminar</button>
     </div>
 
     <script>
-        let inventory = Array(36).fill(null);
-        let currentIdx = null;
+        // MAPA DE ITEMS: Aquí definimos todo. El "id" es lo que irá en la URL.
+        const ITEM_MAP = {
+            1: { name: "Espada", url: "default/default_tool_diamondsword.png", enc: true },
+            2: { name: "Pala", url: "default/default_tool_diamondshovel.png", enc: true },
+            3: { name: "Hacha", url: "default/default_tool_diamondaxe.png", enc: true },
+            4: { name: "Manzana", url: "default/default_apple.png", enc: false },
+            5: { name: "Lava", url: "bucket/bucket_lava.png", enc: false },
+            6: { name: "Pan", url: "farming/farming_bread.png", enc: false },
+            7: { name: "TNT", url: "tnt/tnt_side.png", enc: false }
+        };
 
+        const ENCHANT_MAP = { "A": "Filo V", "B": "Empuje II", "C": "Protección IV", "D": "Eficiencia V" };
+
+        let inventory = Array(36).fill(null);
+        let editingIdx = null;
+
+        // Cargar Picker
+        const picker = document.getElementById('item-source');
+        Object.keys(ITEM_MAP).forEach(id => {
+            const item = ITEM_MAP[id];
+            picker.innerHTML += `<div class="drag-source" data-id="${id}"><img src="https://raw.githubusercontent.com/nebulimity/MoreLikeMinecraft/main/${item.url}" class="item-img"></div>`;
+        });
+
+        // Crear Slots
         const main = document.getElementById('main-inv');
         const hot = document.getElementById('hotbar');
-
         for (let i = 0; i < 36; i++) {
             const slot = document.createElement('div');
             slot.className = 'slot';
@@ -142,79 +83,96 @@
 
             new Sortable(slot, {
                 group: 'shared',
-                animation: 150,
                 onAdd: (evt) => {
-                    const item = evt.item;
-                    inventory[i] = {
-                        name: item.dataset.id,
-                        url: item.dataset.url,
-                        canEnc: item.dataset.enc === "true",
-                        enchants: []
-                    };
-                    if (evt.from.dataset.index !== undefined) inventory[evt.from.dataset.index] = null;
-                    item.remove();
+                    const id = evt.item.dataset.id;
+                    if (id) {
+                        inventory[i] = { id: id, enchants: [] };
+                    } else {
+                        const from = evt.from.dataset.index;
+                        inventory[i] = inventory[from];
+                        inventory[from] = null;
+                    }
+                    evt.item.remove();
                     render();
                 }
             });
         }
 
-        new Sortable(document.getElementById('item-source'), {
-            group: { name: 'shared', pull: 'clone', put: false },
-            sort: false
-        });
+        new Sortable(picker, { group: { name: 'shared', pull: 'clone', put: false }, sort: false });
 
         function render() {
-            for (let i = 0; i < 36; i++) {
+            inventory.forEach((data, i) => {
                 const slot = document.querySelector(`.slot[data-index="${i}"]`);
                 slot.innerHTML = '';
-                const d = inventory[i];
-                if (d) {
+                if (data) {
+                    const item = ITEM_MAP[data.id];
                     const img = document.createElement('img');
-                    img.src = d.url;
-                    img.className = 'item-img' + (d.enchants.length > 0 ? ' enchanted' : '');
+                    img.src = `https://raw.githubusercontent.com/nebulimity/MoreLikeMinecraft/main/${item.url}`;
+                    img.className = 'item-img' + (data.enchants.length > 0 ? ' enchanted' : '');
                     img.onclick = () => openModal(i);
                     slot.appendChild(img);
                 }
-            }
+            });
         }
 
         function openModal(i) {
-            currentIdx = i;
-            const item = inventory[i];
-            if (!item.canEnc) { if(confirm("¿Quitar ítem?")) deleteItem(); return; }
+            editingIdx = i;
+            const data = inventory[i];
+            const item = ITEM_MAP[data.id];
+            if (!item.enc) { if(confirm("¿Eliminar?")) deleteItem(); return; }
             document.getElementById('mod-title').innerText = item.name;
             const list = document.getElementById('mod-list');
             list.innerHTML = '';
-            ["Filo V", "Retroceso II", "Protección IV", "Eficiencia V"].forEach(en => {
-                const has = item.enchants.includes(en);
-                list.innerHTML += `<div style="margin-bottom:10px"><label><input type="checkbox" ${has?'checked':''} onchange="toggleEnc('${en}')"> ${en}</label></div>`;
+            Object.keys(ENCHANT_MAP).forEach(code => {
+                const has = data.enchants.includes(code);
+                list.innerHTML += `<div><label><input type="checkbox" ${has?'checked':''} onchange="toggleEnc('${code}')"> ${ENCHANT_MAP[code]}</label></div>`;
             });
             document.getElementById('modal').style.display = 'block';
             document.getElementById('overlay').style.display = 'block';
         }
 
-        function toggleEnc(en) {
-            const item = inventory[currentIdx];
-            const idx = item.enchants.indexOf(en);
-            if (idx > -1) item.enchants.splice(idx, 1); else item.enchants.push(en);
+        function toggleEnc(code) {
+            const data = inventory[editingIdx];
+            const idx = data.enchants.indexOf(code);
+            if (idx > -1) data.enchants.splice(idx, 1); else data.enchants.push(code);
             render();
         }
 
-        function deleteItem() { inventory[currentIdx] = null; closeModal(); render(); }
+        function deleteItem() { inventory[editingIdx] = null; closeModal(); render(); }
         function closeModal() { document.getElementById('modal').style.display = 'none'; document.getElementById('overlay').style.display = 'none'; }
 
         function sendWhatsApp() {
-            if (!inventory.some(x => x !== null)) return alert("¡Inventario vacío!");
+            if (!inventory.some(x => x !== null)) return alert("Inventario vacío");
             alert("Envialo a WhatsApp para que pueda ver tu idea");
-            let text = "*NUEVA IDEA DE KIT* ⚔️\n\n";
-            inventory.forEach((it) => { if(it) text += `- *${it.name}* ${it.enchants.length ? `_(${it.enchants.join(", ")})_` : ''}\n`; });
-            const url = window.location.origin + window.location.pathname + "#kit=" + btoa(JSON.stringify(inventory));
-            window.open(`https://wa.me/?text=${encodeURIComponent(text + "\n🔗 Ver diseño: " + url)}`, '_blank');
+
+            // COMPRESIÓN DEL LINK: Convertimos el inventario en una cadena corta
+            // Formato: slot_index,item_id,encantamientos|...
+            let compressed = [];
+            inventory.forEach((data, i) => {
+                if (data) {
+                    compressed.push(`${i}-${data.id}${data.enchants.join('')}`);
+                }
+            });
+            
+            const shortCode = compressed.join('.');
+            const url = window.location.origin + window.location.pathname + "#k=" + shortCode;
+
+            let text = "*KIT PVP* ⚔️\n\nLink al diseño:\n" + url;
+            window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
         }
 
+        // DECODIFICACIÓN DEL LINK CORTO
         window.onload = () => {
-            if (window.location.hash.includes("#kit=")) {
-                try { inventory = JSON.parse(atob(window.location.hash.split('=')[1])); render(); } catch(e) {}
+            const hash = window.location.hash;
+            if (hash.startsWith("#k=")) {
+                const parts = hash.substring(3).split('.');
+                parts.forEach(p => {
+                    const [idx, content] = p.split('-');
+                    const itemId = content[0];
+                    const enchants = content.substring(1).split('');
+                    inventory[parseInt(idx)] = { id: itemId, enchants: enchants };
+                });
+                render();
             }
         }
     </script>
